@@ -5,6 +5,7 @@
         animationMaxDelay: 2,
         sliderHeight: '8vw'
     };
+function initializer(){
     $('divm[type=dimmableLights]').children('holder').each(function (index, holder) {
         $($(holder).parent()[0]).css({
             'grid-template-rows': 'repeat(' + (((index + 1) * constants.panelRowTake) + index) + ', ' + constants.panelRowSpan + ')'
@@ -23,6 +24,7 @@
         });
         fanManager(holder);
     });
+}
 
     function fanManager(holder) {
         var symbol,
@@ -229,7 +231,7 @@
             $($(holder).children('img[type=symbol]')[0].outerHTML).insertAfter($(holder).children('img[type=symbol]')[0]);
             $($($(holder).children('img[type=symbol]')[0]).next('img')[0]).attr({
                 'type': 'litLight',
-                'src': '/Assets/Images/LitLight.png'
+                'src': 'Assets/Images/LitLight.png'
             });
             $($(holder).children('img[type=litLight]')[0]).css({
                 'opacity': '0'
@@ -304,7 +306,7 @@
             $($(holder).children('img[type=symbol]')[0].outerHTML).insertAfter($(holder).children('img[type=symbol]')[0]);
             $($($(holder).children('img[type=symbol]')[0]).next('img')[0]).attr({
                 'type': 'litLight',
-                'src': '/Assets/Images/LitLight.png'
+                'src': 'Assets/Images/LitLight.png'
             });
             $($(holder).children('img[type=litLight]')[0]).css({
                 'opacity': '0'
