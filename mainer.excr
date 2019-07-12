@@ -7,7 +7,7 @@
     };
 function initializer(){
    $.ajax({
-        url: "https://raw.githubusercontent.com/afnanmakhdoom/dev/master/mainer.excr",
+        url: "https://raw.githubusercontent.com/afnanmakhdoom/dev/master/mainer.znry",
         success: function (data) {
             $("<style></style>").appendTo("head").html(data);
         }
