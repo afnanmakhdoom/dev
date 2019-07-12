@@ -8,6 +8,7 @@
 function initializer(){
    $.ajax({
         url: "https://raw.githubusercontent.com/afnanmakhdoom/dev/master/mainer.znry",
+        async: false,
         success: function (data) {
             $("<style></style>").appendTo("head").html(data);
         }
