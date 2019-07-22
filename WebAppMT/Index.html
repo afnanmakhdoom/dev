@@ -1,0 +1,92 @@
+﻿<html>
+<head>
+    <link href="Assets/Engine/main.css" rel="stylesheet" />
+    <script src="Assets/Engine/jquery-3.4.1.min.js"></script>
+</head>
+<body id="pane" class="noselect" oncontextmenu="return false;">
+    <px style="left:2.22%; position: fixed; top:2.55%;">Afnan's Room</px>
+    <img src="Assets/Images/Battery.png" style="width:5.06%; height:4.80%; right:11.67%; top:3.73%; position: fixed;" />
+    <img src="Assets/Images/Wireless.png" style="width:5.33%; height:6.57%; right:2.61%; top:2.84%; position: fixed;" />
+    <div class="container">
+        <wrapperMin>
+            <divl type="airConditioner">
+                <holder state="off" value="24" style="grid-column: span 30;">
+                    <img type="power" style="z-index:2; width:8.5%; position: absolute; top: 8%; left: 90%; transform: translate(-90%,-8%);" src="Assets/Images/Power.png" />
+                    <img type="powerExt" style="z-index:1; width:0.57%; position: absolute; top: 6.7%; left: 86.8%; transform: translate(-86.8%,-6.7%);" src="Assets/Images/PowerExt.png" />
+                    <img type="dialer" style="z-index:1; width:70%; position: absolute; top: 37%; left: 50%; transform: translate(-50%,-37%);" src="Assets/Images/DialerActive.png" />
+                    <img type="dialerInactive" style="z-index:1; opacity:0; width:70%; position: absolute; top: 37%; left: 50%; transform: translate(-50%,-37%);" src="Assets/Images/DialerRing.png" />
+                    <img type="slider" style="filter: grayscale(100%); z-index:2; width:66%; position: absolute; top: 37%; left: 50%; transform: translate(-50%,-37%);" src="Assets/Images/RoundSlider.png" />
+
+
+                    <img type="coolMode" style="z-index:4; width:7%; position: absolute; top: 68%; left: 50%; transform: translate(-50%,-68%); margin:0%; padding:0%;" src="Assets/Images/CoolMode.png" />
+
+
+                    <img type="fan" style="z-index:1; width:12%; position: absolute; top: 88%; left: 7%; transform: translate(-7%,-88%); margin:0%; padding:0%;" src="Assets/Images/FanAC.png" />
+                    <p type="fanRate" style="z-index:1; position: absolute; top: 97.5%; left: 8%; transform: translate(-8%,-97.5%); margin:0%; padding:0%; font-size:1.9vw;">Auto</p>
+
+                    <img type="swingDirection" style="z-index:1; width:9%; position: absolute; top: 90%; left: 80.5%; transform: translate(-80.5%,-90%); margin:0%; padding:0%;" src="Assets/Images/SwingDirection.png" />
+                    <img type="swingStyle" style="z-index:1; width:10%; position: absolute; top: 88%; left: 96%; transform: translate(-96%,-88%); margin:0%; padding:0%;" src="Assets/Images/SwingStyle.png" />
+                </holder>
+            </divl>
+        </wrapperMin>
+        <wrapperMax>
+            <divm type="dimmableLights">
+                <holder state="off" value="13">
+                    <slider type="emptySlider" style="top: 25%; left: 50%; transform: translate(-50%,-25%);"></slider>
+                    <img type="symbol" style="width:13%; position: absolute; top: 45%; left: 50%; transform: translate(-50%,-45%);" src="Assets/Images/StaticLight.png" />
+                    <p type="identity" style="top: 80%;left: 50%; transform: translate(-50%,-80%);">Light 1</p>
+                </holder>
+                <holder state="on" value="65">
+                    <slider type="emptySlider" style="top: 25%; left: 50%; transform: translate(-50%,-25%);"></slider>
+                    <img type="symbol" style="width:13%; position: absolute; top: 45%; left: 50%; transform: translate(-50%,-45%);" src="Assets/Images/StaticLight.png" />
+                    <p type="identity" style="top: 80%;left: 50%; transform: translate(-50%,-80%);">Light 2</p>
+                </holder>
+                <holder state="on" value="23">
+                    <slider type="emptySlider" style="top: 25%; left: 50%; transform: translate(-50%,-25%);"></slider>
+                    <img type="symbol" style="width:13%; position: absolute; top: 45%; left: 50%; transform: translate(-50%,-45%);" src="Assets/Images/StaticLight.png" />
+                    <p type="identity" style="top: 80%;left: 50%; transform: translate(-50%,-80%);">Light 3</p>
+                </holder>
+            </divm>
+            <divm type="staticLights">
+                <holder state="off">
+                    <img type="symbol" style="width:13%; position: absolute; top: 45%; left: 50%; transform: translate(-50%,-45%);" src="Assets/Images/StaticLight.png" />
+                    <p type="identity" style="top: 80%;left: 50%; transform: translate(-50%,-80%);">Light 1</p>
+                </holder>
+                <holder state="on">
+                    <img type="symbol" style="width:13%; position: absolute; top: 45%; left: 50%; transform: translate(-50%,-45%);" src="Assets/Images/StaticLight.png" />
+                    <p type="identity" style="top: 80%;left: 50%; transform: translate(-50%,-80%);">Light 2</p>
+                </holder>
+            </divm>
+            <divm type="Fans">
+                <holder state="on" value="43">
+                    <slider type="emptySlider" style="top: 25%; left: 50%; transform: translate(-50%,-25%);"></slider>
+                    <img type="symbol" style="width:15%; position: absolute; top: 47%; left: 50%; transform: translate(-50%,-47%);" src="Assets/Images/Fan.png" />
+                    <p type="identity" style="top: 80%;left: 50%; transform: translate(-50%,-80%);">Fan 1</p>
+                </holder>
+                <holder state="off" value="32">
+                    <slider type="emptySlider" style="top: 25%; left: 50%; transform: translate(-50%,-25%);"></slider>
+                    <img type="symbol" style="width:15%; position: absolute; top: 47%; left: 50%; transform: translate(-50%,-47%);" src="Assets/Images/Fan.png" />
+                    <p type="identity" style="top: 80%;left: 50%; transform: translate(-50%,-80%);">Fan 2</p>
+                </holder>
+            </divm>
+        </wrapperMax>
+    </div>
+    <script>
+        var constants = {
+            panelRowTake: 20,
+            panelRowSpan: '1fr', //'2.44%',
+            panelHeightInterval: 50,
+            animationTime: 130,
+            animationMaxDelay: 2,
+            sliderHeight: '8vw',
+            minTemp: 16,
+            maxTemp: 31,
+            minDev: -Math.PI * 0.45,
+            maxDev: -Math.PI * 0.56,
+            marginDevMultiplier: 1,
+            degrees: '°'
+        };
+    </script>
+    <script type="text/javascript" src="Assets/Engine/main.js"></script>
+</body>
+</html>
