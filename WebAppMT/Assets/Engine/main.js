@@ -24,7 +24,6 @@ $(document).ready(function () {
     $('divl[type=airConditioner]').children('holder').each(function (index, holder) {
         airConditionerManager(holder);
     });
-    function __weatherwidget_init() {
         var a = document.getElementsByClassName("weatherwidget-io"),
             i = [];
         if (0 !== a.length) {
@@ -48,8 +47,6 @@ $(document).ready(function () {
                 });
             });
         } else setTimeout(__weatherwidget_init, 1500);
-    }
-    __weatherwidget_init();
 });
 
 function airConditionerManager(holder) {
