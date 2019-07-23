@@ -39,11 +39,14 @@ $(document).ready(function () {
             }
             window.addEventListener("message", function (t) {
                 "https://weatherwidget.io" === t.origin && i[t.data.wwId] && i[t.data.wwId].parentNode && (i[t.data.wwId].style.height = t.data.wwHeight + "px", i[t.data.wwId].parentNode.style.height = t.data.wwHeight + "px")
+                //$(a).css({
+                //    'display': 'inline-block',
+                //    'height': '10%',
+                //    'position': 'absolute',
+                //    'pointer- events': 'none'
+                //});
                 $(a).css({
-                    'display': 'inline-block',
-                    'height': '10%',
-                    'position': 'absolute',
-                    'pointer- events': 'none'
+                    'position': 'absolute', 'top': '0', 'right': '0', 'bottom': '0', 'left': '0', 'width': '100%', 'height': '100%', 'display': 'inline-block'
                 });
             });
         } else setTimeout(__weatherwidget_init, 1500);
