@@ -29,7 +29,7 @@ $(document).ready(function () {
         if (!d.getElementById(id)) {
             js = d.createElement(s);
             js.id = id;
-            js.src = '../WebAppMT/Assets/Engine/weather.js';
+            js.src = 'Assets/Engine/weather.js';
             fjs.parentNode.insertBefore(js, fjs);
         }
     }(document, 'script', 'weatherwidget-io-js');
