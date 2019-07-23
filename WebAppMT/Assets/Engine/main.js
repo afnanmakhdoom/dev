@@ -41,7 +41,7 @@ $(document).ready(function () {
                 "https://weatherwidget.io" === t.origin && i[t.data.wwId] && i[t.data.wwId].parentNode && (i[t.data.wwId].style.height = t.data.wwHeight + "px", i[t.data.wwId].parentNode.style.height = t.data.wwHeight + "px")
                 $(a).css({
                     'display': 'inline-block',
-                    'height': '20%',
+                    'height': '10%',
                     'position': 'absolute',
                     'pointer- events': 'none'
                 });
