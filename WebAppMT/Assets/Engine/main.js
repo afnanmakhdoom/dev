@@ -24,15 +24,13 @@ $(document).ready(function () {
     $('divl[type=airConditioner]').children('holder').each(function (index, holder) {
         airConditionerManager(holder);
     });
-    ! function (d, s, id) {
-        var js, fjs = d.getElementsByTagName(s)[0];
-        if (!d.getElementById(id)) {
-            js = d.createElement(s);
-            js.id = id;
-            js.src = 'Assets/Engine/weather.js';
-            fjs.parentNode.insertBefore(js, fjs);
-        }
-    }(document, 'script', 'weatherwidget-io-js');
+    var js, fjs = document.getElementsByTagName('script')[0];
+    if (!document.getElementById('weatherwidget-io-js')) {
+        js = document.createElement('script');
+        js.id = 'weatherwidget-io-js';
+        js.src = 'Assets/Engine/weather.js';
+        fjs.parentNode.insertBefore(js, fjs);
+    }
 });
 
 function airConditionerManager(holder) {
