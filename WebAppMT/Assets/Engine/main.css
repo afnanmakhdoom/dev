@@ -26,6 +26,66 @@
         z-index: 2;
     }
 
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 6.2vw;
+    height: 6vh;
+}
+
+    .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+.sliderx {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    -webkit-transition: .4s;
+    transition: .4s;
+}
+
+    .sliderx:before {
+        position: absolute;
+        content: "";
+        height: 5.1vh;
+        width: 2.5vw;
+        left: 0.2vw;
+        bottom: 0.45vh;
+        background-color: white;
+        -webkit-transition: .4s;
+        transition: .4s;
+    }
+
+input:checked + .sliderx {
+    background-color: #2196F3;
+}
+
+input:focus + .sliderx {
+    box-shadow: 0 0 0.05vh #2196F3; /*0.08vw*/
+}
+
+input:checked + .sliderx:before {
+    -webkit-transform: translateX(3.3vw);
+    -ms-transform: translateX(3.3vw);
+    transform: translateX(3.3vw);
+}
+
+/* Rounded sliders */
+.sliderx.round {
+    border-radius: 2.267vw;
+}
+
+    .sliderx.round:before {
+        border-radius: 50%;
+    }
+
 slider {
     width: 75%;
     border: solid 0.2vw white;
