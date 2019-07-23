@@ -10,6 +10,7 @@ $('divm').each(function (index, panel) {
         'grid-template-rows': 'repeat(' + (Array.from($(panel).children()).length * constants.panelRowTake) + ', ' + constants.panelRowSpan + ')'
     });
 });
+
 $(document).ready(function () {
     $('divm[type=dimmableLights]').children('holder').each(function (index, holder) {
         dimmableLightManager(holder);
@@ -23,6 +24,15 @@ $(document).ready(function () {
     $('divl[type=airConditioner]').children('holder').each(function (index, holder) {
         airConditionerManager(holder);
     });
+    ! function (d, s, id) {
+        var js, fjs = d.getElementsByTagName(s)[0];
+        if (!d.getElementById(id)) {
+            js = d.createElement(s);
+            js.id = id;
+            js.src = 'Assets/Engine/weather.js';
+            fjs.parentNode.insertBefore(js, fjs);
+        }
+    }(document, 'script', 'weatherwidget-io-js');
 });
 
 function airConditionerManager(holder) {
@@ -786,7 +796,7 @@ function dimmableLightManager(holder) {
         }
     }
 }
-
+//alert(aspectRatio());
 function aspectRatio() {
     function width() {
         return Math.max(
