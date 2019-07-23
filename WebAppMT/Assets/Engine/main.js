@@ -1,3 +1,4 @@
+debugger;
 $('divl').each(function (index, panel) {
     $(panel).css({
         'height': (Array.from($(panel).children()).length * (constants.panelHeightInterval * 2)) + '%',
