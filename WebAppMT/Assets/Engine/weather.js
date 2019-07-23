@@ -1,5 +1,5 @@
 "use strict";
-
+alert('called');
 function __weatherwidget_init() {
     var a = document.getElementsByClassName("weatherwidget-io"),
         i = [];
