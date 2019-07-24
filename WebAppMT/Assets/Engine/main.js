@@ -1,55 +1,91 @@
-$('divl').each(function (index, panel) {
-    $(panel).css({
-        'height': (Array.from($(panel).children()).length * (constants.panelHeightInterval * 2)) + '%',
-        'grid-template-rows': 'repeat(' + (Array.from($(panel).children()).length * constants.panelRowTake) + ', ' + constants.panelRowSpan + ')'
-    });
-});
-$('divm').each(function (index, panel) {
-    $(panel).css({
-        'height': (Array.from($(panel).children()).length * constants.panelHeightInterval) + '%',
-        'grid-template-rows': 'repeat(' + (Array.from($(panel).children()).length * constants.panelRowTake) + ', ' + constants.panelRowSpan + ')'
-    });
+var server = io.connect(constants.serverIP), room, roomCommands;
+var lastRequest;
+server.on('connect', function () {
+    lastRequest = "getRoom";
+    server.emit('postconfig');
 });
 
-$(document).ready(function () {
-    $('divm[type=dimmableLights]').children('holder').each(function (index, holder) {
-        dimmableLightManager(holder);
+function initialize() {
+    var roomInfo = room.Rooms[0];
+    document.getElementById("roomIdentity").innerHTML = roomInfo['Room Name'];
+    $(roomInfo.Devices['Air Conditioner']).each(function (index, appliance) {
+        $($($('wrappermin')[0]).children('divl[type=airConditioners]')[0]).append('<holder state = "' + appliance['Power'].toLowerCase() + '" value = "' + appliance['Temperature'] + '"  switch="' + appliance['Air Conditioner No.'] + '">'
+            + '<img type="power" style="z-index:2; width:8.5%; height: 10%; position: absolute; top: 8%; left: 90%; transform: translate(-90%,-8%);" src="Assets/Images/Power.png" />'
+            + '<img type="powerExt" style="z-index:1; width:0.57%; height: 4.7%; position: absolute; top: 6.7%; left: 86.8%; transform: translate(-86.8%,-6.7%);" src="Assets/Images/PowerExt.png" />'
+            + '<img type="dialer" style="border-radius: 50%; z-index:1; width:70%; position: absolute; top: 37%; left: 50%; transform: translate(-50%,-37%);" src="Assets/Images/DialerActive.png" />'
+            + '<img type="dialerInactive" style="border-radius: 50%; z-index:1; opacity:0; width:70%; position: absolute; top: 37%; left: 50%; transform: translate(-50%,-37%);" src="Assets/Images/DialerRing.png" />'
+            + '<img type="slider" style="border-radius: 50%; filter: grayscale(100%); z-index:2; width:66%; position: absolute; top: 37%; left: 50%; transform: translate(-50%,-37%);" src="Assets/Images/RoundSlider.png" />'
+
+
+            + '<img type="coolMode" style="z-index:4; width:8.5%; height:11.4%; position: absolute; top: 66%; left: 50%; transform: translate(-50%,-66%); margin:0%; padding:0%;" src="Assets/Images/CoolMode.png" />'
+
+            + '<img type="fan" style="z-index:1; width:11%; height: 10.3%; position: absolute; top: 90%; left: 5.5%; transform: translate(-5.5%,-90%); margin:0%; padding:0%;" src="Assets/Images/FanAC.png" />'
+            + '<p type="fanRate" style="z-index:1; position: absolute; top: 99.5%; left: 6%; transform: translate(-6%,-99.5%); margin:0%; padding:0%; font-size:1.9vw;">Auto</p>'
+
+            + '<img type="swingDirection" style="z-index:1; width:9%; height: 9%; position: absolute; top: 94%; left: 83%; transform: translate(-83%,-94%); margin:0%; padding:0%;" src="Assets/Images/SwingDirection.png" />'
+            + '<img type="swingStyle" style="z-index:1; width:10%; height:7%; position: absolute; top: 92%; left: 97%; transform: translate(-97%,-92%); margin:0%; padding:0%;" src="Assets/Images/SwingStyle.png" />'
+            + '</holder>');
     });
-    $('divm[type=staticLights]').children('holder').each(function (index, holder) {
-        staticLightManager(holder);
+    $(roomInfo.Devices['Switches']).each(function (index, appliance) {
+        if (appliance['Switch type'].toLowerCase() == "dimmable light") {
+            $($($('wrappermax')[0]).children('divm[type=dimmableLights]')[0]).append('<holder state="' + (appliance['Status'] == 0 ? 'off' : 'on') + '" value="' + appliance['Dim Value'] + '" switch="' + appliance['Switch No.'] + '">'
+                + '<slider type="emptySlider" style = "top: 25%; left: 50%; transform: translate(-50%,-25%);" ></slider >'
+                + '<img type="symbol" style="width:13%; height:22.5%; position: absolute; top: 45%; left: 50%; transform: translate(-50%,-45%);" src="Assets/Images/StaticLight.png" />'
+                + '<p type="identity" style="top: 80%;left: 50%; transform: translate(-50%,-80%);">' + appliance['Switch type'] + '</p>'
+                + '</holder>');
+        } else if (appliance['Switch type'].toLowerCase() == "static light") {
+            $($($('wrappermax')[0]).children('divm[type=staticLights]')[0]).append('<holder state="' + (appliance['Status'] == 0 ? 'off' : 'on') + '" switch="' + appliance['Switch No.'] + '">'
+                + '<img type = "symbol" style = "width:13%; height:22.5%; position: absolute; top: 45%; left: 50%; transform: translate(-50%,-45%);" src = "Assets/Images/StaticLight.png" />'
+                + '<p type="identity" style="top: 80%;left: 50%; transform: translate(-50%,-80%);">' + appliance['Switch type'] + '</p>'
+                + '</holder>');
+        } else if (appliance['Switch type'].toLowerCase() == "fan") {
+            $($($('wrappermax')[0]).children('divm[type=fans]')[0]).append('<holder state="' + (appliance['Status'] == 0 ? 'off' : 'on') + '" value="' + appliance['Dim Value'] + '" switch="' + appliance['Switch No.'] + '">'
+                + '<slider type = "emptySlider" style = "top: 25%; left: 50%; transform: translate(-50%,-25%);" ></slider>'
+                + '<img type="symbol" style="width:15%; height:20%; position: absolute; top: 47%; left: 50%; transform: translate(-50%,-47%);" src="Assets/Images/Fan.png" />'
+                + '<p type="identity" style="top: 80%;left: 50%; transform: translate(-50%,-80%);">' + appliance['Switch type'] + '</p>'
+                + '</holder >');
+        }
     });
-    $('divm[type=Fans]').children('holder').each(function (index, holder) {
-        fanManager(holder);
+    roomCommands = JSON.parse(JSON.stringify(room));
+    roomCommands.Rooms[0].Devices['Air Conditioner'] = [];
+    roomCommands.Rooms[0].Devices['Switches'] = [];
+    $('divl').each(function (index, panel) {
+        $(panel).css({
+            'height': (Array.from($(panel).children()).length * (constants.panelHeightInterval * 2)) + '%',
+            'grid-template-rows': 'repeat(' + (Array.from($(panel).children()).length * constants.panelRowTake) + ', ' + constants.panelRowSpan + ')'
+        });
     });
-    $('divl[type=airConditioner]').children('holder').each(function (index, holder) {
-        airConditionerManager(holder);
+    $('divm').each(function (index, panel) {
+        $(panel).css({
+            'height': (Array.from($(panel).children()).length * constants.panelHeightInterval) + '%',
+            'grid-template-rows': 'repeat(' + (Array.from($(panel).children()).length * constants.panelRowTake) + ', ' + constants.panelRowSpan + ')'
+        });
     });
-        var a = document.getElementsByClassName("weatherwidget-io"),
-            i = [];
-        if (0 !== a.length) {
-            for (var t = function (t) {
-                var e = a[t],
-                    o = {};
-                o.id = "weatherwidget-io-" + t, o.href = e.href, o.label_1 = e.getAttribute("data-label_1"), o.label_2 = e.getAttribute("data-label_2"), o.font = e.getAttribute("data-font"), o.icons = e.getAttribute("data-icons"), o.mode = e.getAttribute("data-mode"), o.days = e.getAttribute("data-days"), o.theme = e.getAttribute("data-theme"), o.basecolor = e.getAttribute("data-basecolor"), o.accent = e.getAttribute("data-accent"), o.textcolor = e.getAttribute("data-textcolor"), o.textAccent = e.getAttribute("data-textAccent"), o.highcolor = e.getAttribute("data-highcolor"), o.lowcolor = e.getAttribute("data-lowcolor"), o.suncolor = e.getAttribute("data-suncolor"), o.mooncolor = e.getAttribute("data-mooncolor"), o.cloudcolor = e.getAttribute("data-cloudcolor"), o.cloudfill = e.getAttribute("data-cloudfill"), o.raincolor = e.getAttribute("data-raincolor"), o.snowcolor = e.getAttribute("data-snowcolor"), o.windcolor = e.getAttribute("data-windcolor"), o.fogcolor = e.getAttribute("data-fogcolor"), o.thundercolor = e.getAttribute("data-thundercolor"), o.hailcolor = e.getAttribute("data-hailcolor"), o.dayscolor = e.getAttribute("data-dayscolor"), o.tempcolor = e.getAttribute("data-tempcolor"), o.desccolor = e.getAttribute("data-desccolor"), o.label1color = e.getAttribute("data-label1color"), o.label2color = e.getAttribute("data-label2color"), o.shadow = e.getAttribute("data-shadow"), o.scale = e.getAttribute("data-scale"), (r = document.getElementById(o.id)) && e.removeChild(r), i[o.id] = document.createElement("iframe"), i[o.id].setAttribute("id", o.id), i[o.id].setAttribute("class", "weatherwidget-io-frame"), i[o.id].setAttribute("scrolling", "no"), i[o.id].setAttribute("frameBorder", "0"), i[o.id].setAttribute("width", "100%"), i[o.id].setAttribute("src", "https://weatherwidget.io/w/"), i[o.id].style.display = "block", i[o.id].style.position = "absolute", i[o.id].style.top = "0", i[o.id].onload = function () {
-                    i[o.id].contentWindow.postMessage(o, "https://weatherwidget.io");
-                }, e.style.display = "block", e.style.position = "relative", e.style.height = "150px", e.style.padding = "0", e.style.overflow = "hidden", e.style.textAlign = "left", e.style.textIndent = "-299rem", e.appendChild(i[o.id])
-            }, e = 0, o = Math.min(a.length, 10); e < o; e++) {
-                var r;
-                t(e);
-            }
-            window.addEventListener("message", function (t) {
-                "https://weatherwidget.io" === t.origin && i[t.data.wwId] && i[t.data.wwId].parentNode && (i[t.data.wwId].style.height = t.data.wwHeight + "px", i[t.data.wwId].parentNode.style.height = t.data.wwHeight + "px")
-                //$(a).css({
-                //    'display': 'inline-block',
-                //    'height': '10%',
-                //    'position': 'absolute',
-                //    'pointer- events': 'none'
-                //});
-                $(a).css({
-                    'position': 'absolute', 'top': '0', 'right': '0', 'bottom': '0', 'left': '0', 'width': '100%', 'height': '100%', 'display': 'inline-block'
-                });
-            });
-        } else setTimeout(__weatherwidget_init, 1500);
+
+    $(window).on('load', function () {
+        $('divm[type=dimmableLights]').children('holder').each(function (index, holder) {
+            dimmableLightManager(holder);
+        });
+        $('divm[type=staticLights]').children('holder').each(function (index, holder) {
+            staticLightManager(holder);
+        });
+        $('divm[type=fans]').children('holder').each(function (index, holder) {
+            fanManager(holder);
+        });
+        $('divl[type=airConditioners]').children('holder').each(function (index, holder) {
+            airConditionerManager(holder);
+        });
+    });
+}
+
+server.on('message', function (stack) {
+    if (stack) {
+        if (lastRequest == 'getRoom') {
+            room = stack;
+            lastRequest = "";
+            initialize();
+        }
+    }
 });
 
 function airConditionerManager(holder) {
@@ -79,8 +115,10 @@ function airConditionerManager(holder) {
         fan,
         fanRate,
         swingDirection,
-        swingStyle;
-    fullSlider();
+        swingStyle,
+        airConditioner;
+    airConditioner = 
+    sliderFill();
     adjuster();
     $(window).resize(function () {
         adjuster();
@@ -88,8 +126,10 @@ function airConditionerManager(holder) {
     $(power).mousedown(toggler);
     $(powerExt).mousedown(toggler);
     stateCoordinator();
-    function fullSlider() {
-        $('<img type="fullSlider" style="z-index:3; width:66%; position: absolute; top: 37%; left: 50%; transform: translate(-50%,-37%);" src="Assets/Images/RoundSlider.png" />').insertAfter($(holder).children('img[type=slider]')[0]);
+    function sliderFill() {
+        $($(holder).children('img[type=slider]')[0].outerHTML).insertAfter($(holder).children('img[type=slider]')[0]);
+        $($(holder).children('img[type=slider]')[1]).attr('type', 'fullSlider');
+        $($(holder).children('img[type=fullSlider]')[0]).css('filter', '');
         $(holder).append('<p type="rate" style="font-size: 6vw; top: 44%; left: 52.5%; transform: translate(-52.5%,-44%); z-index:3;"></p>');
         $('<img type="knob" style="width: 10%; position: absolute; z-index: 4;" src="Assets/Images/Knob.png" />').insertAfter($(holder).children('img[type=fullSlider]')[0]);
     }
@@ -362,14 +402,14 @@ function fanManager(holder) {
         xc,
         yc,
         r;
-    fullSlider();
+    sliderFill();
     adjuster();
     $(window).resize(function () {
         adjuster();
     });
     $(holder).mousedown(toggler);
     stateCoordinator();
-    function fullSlider() {
+    function sliderFill() {
         $(holder).append('<p type="rate" style="top: 12%;left: 90%; transform: translate(-50%,-80%);"></p>');
         $($(holder).children('slider[type=emptySlider]')[0].outerHTML).insertAfter($(holder).children('slider[type=emptySlider]')[0]);
         $($($(holder).children('slider[type=emptySlider]')[0]).next('slider')[0]).attr('type', 'fullSlider');
@@ -546,11 +586,11 @@ function staticLightManager(holder) {
     var symbol,
         name,
         litLight;
-    litLight();
+    lightGlow();
     adjuster();
     $(holder).mousedown(toggler);
     stateCoordinator();
-    function litLight() {
+    function lightGlow() {
         $($(holder).children('img[type=symbol]')[0].outerHTML).insertAfter($(holder).children('img[type=symbol]')[0]);
         $($($(holder).children('img[type=symbol]')[0]).next('img')[0]).attr({
             'type': 'litLight',
@@ -617,15 +657,15 @@ function dimmableLightManager(holder) {
         xc,
         yc,
         r;
-    litLight();
-    fullSlider();
+    lightGlow();
+    sliderFill();
     adjuster();
     $(window).resize(function () {
         adjuster();
     });
     $(holder).mousedown(toggler);
     stateCoordinator();
-    function litLight() {
+    function lightGlow() {
         $($(holder).children('img[type=symbol]')[0].outerHTML).insertAfter($(holder).children('img[type=symbol]')[0]);
         $($($(holder).children('img[type=symbol]')[0]).next('img')[0]).attr({
             'type': 'litLight',
@@ -635,7 +675,7 @@ function dimmableLightManager(holder) {
             'opacity': '0'
         });
     }
-    function fullSlider() {
+    function sliderFill() {
         $(holder).append('<p type="rate" style="top: 12%;left: 90%; transform: translate(-50%,-80%);"></p>');
         $($(holder).children('slider[type=emptySlider]')[0].outerHTML).insertAfter($(holder).children('slider[type=emptySlider]')[0]);
         $($($(holder).children('slider[type=emptySlider]')[0]).next('slider')[0]).attr('type', 'fullSlider');
@@ -813,7 +853,43 @@ function dimmableLightManager(holder) {
         }
     }
 }
-//alert(aspectRatio());
+function validateStringJSON(inpStr) {
+    try {
+        JSON.parse(inpStr);
+    } catch (e) {
+        return false;
+    }
+    return true;
+}
+(function () {
+    var a = document.getElementsByClassName("weatherwidget-io"),
+        i = [];
+    if (0 !== a.length) {
+        for (var t = function (t) {
+            var e = a[t],
+                o = {};
+            o.id = "weatherwidget-io-" + t, o.href = e.href, o.label_1 = e.getAttribute("data-label_1"), o.label_2 = e.getAttribute("data-label_2"), o.font = e.getAttribute("data-font"), o.icons = e.getAttribute("data-icons"), o.mode = e.getAttribute("data-mode"), o.days = e.getAttribute("data-days"), o.theme = e.getAttribute("data-theme"), o.basecolor = e.getAttribute("data-basecolor"), o.accent = e.getAttribute("data-accent"), o.textcolor = e.getAttribute("data-textcolor"), o.textAccent = e.getAttribute("data-textAccent"), o.highcolor = e.getAttribute("data-highcolor"), o.lowcolor = e.getAttribute("data-lowcolor"), o.suncolor = e.getAttribute("data-suncolor"), o.mooncolor = e.getAttribute("data-mooncolor"), o.cloudcolor = e.getAttribute("data-cloudcolor"), o.cloudfill = e.getAttribute("data-cloudfill"), o.raincolor = e.getAttribute("data-raincolor"), o.snowcolor = e.getAttribute("data-snowcolor"), o.windcolor = e.getAttribute("data-windcolor"), o.fogcolor = e.getAttribute("data-fogcolor"), o.thundercolor = e.getAttribute("data-thundercolor"), o.hailcolor = e.getAttribute("data-hailcolor"), o.dayscolor = e.getAttribute("data-dayscolor"), o.tempcolor = e.getAttribute("data-tempcolor"), o.desccolor = e.getAttribute("data-desccolor"), o.label1color = e.getAttribute("data-label1color"), o.label2color = e.getAttribute("data-label2color"), o.shadow = e.getAttribute("data-shadow"), o.scale = e.getAttribute("data-scale"), (r = document.getElementById(o.id)) && e.removeChild(r), i[o.id] = document.createElement("iframe"), i[o.id].setAttribute("id", o.id), i[o.id].setAttribute("class", "weatherwidget-io-frame"), i[o.id].setAttribute("scrolling", "no"), i[o.id].setAttribute("frameBorder", "0"), i[o.id].setAttribute("width", "100%"), i[o.id].setAttribute("src", "https://weatherwidget.io/w/"), i[o.id].style.display = "block", i[o.id].style.position = "absolute", i[o.id].style.top = "0", i[o.id].onload = function () {
+                i[o.id].contentWindow.postMessage(o, "https://weatherwidget.io");
+            }, e.style.display = "block", e.style.position = "relative", e.style.height = "150px", e.style.padding = "0", e.style.overflow = "hidden", e.style.textAlign = "left", e.style.textIndent = "-299rem", e.appendChild(i[o.id])
+        }, e = 0, o = Math.min(a.length, 10); e < o; e++) {
+            var r;
+            t(e);
+        }
+        window.addEventListener("message", function (t) {
+            "https://weatherwidget.io" === t.origin && i[t.data.wwId] && i[t.data.wwId].parentNode && (i[t.data.wwId].style.height = t.data.wwHeight + "px", i[t.data.wwId].parentNode.style.height = t.data.wwHeight + "px")
+            //$(a).css({
+            //    'display': 'inline-block',
+            //    'height': '10%',
+            //    'position': 'absolute',
+            //    'pointer- events': 'none'
+            //});
+            $(a).css({
+                'position': 'absolute', 'top': '0', 'right': '0', 'bottom': '0', 'left': '0', 'width': '100%', 'height': '100%', 'display': 'inline-block'
+            });
+        });
+    } else setTimeout(arguments.callee, constants.weatherLoadFailureRetryDelay);
+    setTimeout(arguments.callee, constants.weatherUpdateInterval);
+})();
 function aspectRatio() {
     function width() {
         return Math.max(
