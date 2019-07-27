@@ -1,5 +1,5 @@
 body {
-    background-image: url(./Assets/Background.png);
+    background-image: url(./Assets/Images/Background.png);
     background-repeat: no-repeat;
     background-size: cover; /*1080px 612px;*/
     height: 100%;
@@ -20,7 +20,7 @@ body {
         min-width: 100%;
         min-height: 10%;
         height: 10%; /*73.8px;*/
-        background-image: url(./Assets/TopBar.png);
+        background-image: url(./Assets/Images/TopBar.png);
         /*background-size: 100%;*/
         background-repeat: no-repeat;
         z-index: 2;
