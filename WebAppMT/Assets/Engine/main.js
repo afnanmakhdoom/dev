@@ -1,45 +1,96 @@
-var server = io.connect(constants.serverIP), room, roomCommands;
-var lastRequest;
+var server = io.connect(constants.serverIP), room, roomCommands, appliances = {
+    'airConditioners': [],
+    'switches': [],
+    'mainSwitch': null
+};
 server.on('connect', function () {
-    lastRequest = "getRoom";
     server.emit('postconfig');
 });
-
+server.on('message', function (stack) {
+    if (stack) {
+        if (room == null) {
+            room = stack;
+            initialize();
+        }
+    }
+});
+server.on('sendcommand', function (stack) {
+    if (stack.Rooms[0].Devices['Air Conditioner'].length > 0) {
+        for (i = 0; i < stack.Rooms[0].Devices['Air Conditioner'].length; i++) {
+            room.Rooms[0].Devices['Air Conditioner'][room.Rooms[0].Devices['Air Conditioner'].findIndex(function (appliance) {
+                if (appliance['Air Conditioner No.'] == stack.Rooms[0].Devices['Air Conditioner'][i]['Air Conditioner No.']) {
+                    return appliance;
+                }
+            })] = stack.Rooms[0].Devices['Air Conditioner'][i];
+            appliances.airConditioners[appliances.airConditioners.findIndex(function (appliance) {
+                if (appliance['identity'] == stack.Rooms[0].Devices['Air Conditioner'][i]['Air Conditioner No.']) {
+                    return appliance;
+                }
+            })].invoker(stack.Rooms[0].Devices['Air Conditioner'][i]);
+            if (stack.Rooms[0].Devices['Air Conditioner'][i]['Power'] == 'ON') {
+                appliances.mainSwitch();
+            }
+        }
+    }
+    if (stack.Rooms[0].Devices['Switches'].length > 0) {
+        for (i = 0; i < stack.Rooms[0].Devices['Switches'].length; i++) {
+            room.Rooms[0].Devices['Switches'][room.Rooms[0].Devices['Switches'].findIndex(function (appliance) {
+                if (appliance['Switch No.'] == stack.Rooms[0].Devices['Switches'][i]['Switch No.']) {
+                    return appliance;
+                }
+            })] = stack.Rooms[0].Devices['Switches'][i];
+            appliances.switches[appliances.switches.findIndex(function (appliance) {
+                if (appliance['identity'] == stack.Rooms[0].Devices['Switches'][i]['Switch No.']) {
+                    return appliance;
+                }
+            })].invoker(stack.Rooms[0].Devices['Switches'][i]);
+            if (stack.Rooms[0].Devices['Switches'][i]['Status'] == 1) {
+                appliances.mainSwitch();
+            }
+        }
+    }//room.Rooms[0].Devices['Switches'][room.Rooms[0].Devices['Switches'].filter(appliance => { return appliance['Switch No.'] == stack.Rooms[0].Devices['Switches'][0]['Switch No.'] })[0]] = stack.Rooms[0].Devices['Switches'][0];
+});
 function initialize() {
     var roomInfo = room.Rooms[0];
     document.getElementById("roomIdentity").innerHTML = roomInfo['Room Name'];
     $(roomInfo.Devices['Air Conditioner']).each(function (index, appliance) {
-        $($($('wrappermin')[0]).children('divl[type=airConditioners]')[0]).append('<holder state = "' + appliance['Power'].toLowerCase() + '" value = "' + appliance['Temperature'] + '"  switch="' + appliance['Air Conditioner No.'] + '">'
+        $($($('wrappermin')[0]).children('divl[type=airConditioners]')[0]).append('<holder state = "' + appliance['Power'].toLowerCase() + '" value = "' + appliance['Temperature'] + '"  switch = "' + appliance['Air Conditioner No.'] + '" '
+            + 'minTemp = "' + appliance['Min Range'] + '" maxTemp = "' + appliance['Max Range'] + '" fanRate = "' + appliance['Fan Speed'] + '" Mode = "' + appliance['Mode'] + '">'
             + '<img type="power" style="z-index:2; width:8.5%; height: 10%; position: absolute; top: 8%; left: 90%; transform: translate(-90%,-8%);" src="Assets/Images/Power.png" />'
-            + '<img type="powerExt" style="z-index:1; width:0.57%; height: 4.7%; position: absolute; top: 6.7%; left: 86.8%; transform: translate(-86.8%,-6.7%);" src="Assets/Images/PowerExt.png" />'
-            + '<img type="dialer" style="border-radius: 50%; z-index:1; width:70%; position: absolute; top: 37%; left: 50%; transform: translate(-50%,-37%);" src="Assets/Images/DialerActive.png" />'
-            + '<img type="dialerInactive" style="border-radius: 50%; z-index:1; opacity:0; width:70%; position: absolute; top: 37%; left: 50%; transform: translate(-50%,-37%);" src="Assets/Images/DialerRing.png" />'
-            + '<img type="slider" style="border-radius: 50%; filter: grayscale(100%); z-index:2; width:66%; position: absolute; top: 37%; left: 50%; transform: translate(-50%,-37%);" src="Assets/Images/RoundSlider.png" />'
+            + '<img type="powerExt" style="z-index:1; width:0.57%; height: 4.7%; position: absolute; top: 6.7%; left: 86.716%; transform: translate(-86.716%,-6.7%);" src="Assets/Images/PowerExt.png" />'
+            + '<img type="dialer" style="border-radius: 50%; z-index:1; width:75%; position: absolute; top: 37%; left: 50%; transform: translate(-50%,-37%);" src="Assets/Images/DialerActive.png" />'
+            + '<img type="dialerInactive" style="border-radius: 50%; z-index:1; opacity:0; width:75%; position: absolute; top: 37%; left: 50%; transform: translate(-50%,-37%);" src="Assets/Images/DialerRing.png" />'
+            + '<img type="slider" style="border-radius: 50%; filter: grayscale(100%); z-index:2; width:71%; position: absolute; top: 37%; left: 50%; transform: translate(-50%,-37%);" src="Assets/Images/RoundSlider.png" />'
 
+            + '<div type="modes" style="z-index: 4; width: 35%; height: 12%; position: absolute; top: 66%; left: 50%; text-align:center; transform: translate(-50%, -66%);">'
+            + '<img type="cool" style="width:23%; margin-left:6%; margin-right: 6%; margin-bottom:1%; margin-top:1%; height: 90%;" type = "coolMode" src = "Assets/Images/CoolMode.png" >'
+            + '<img type="heat" style="width:13%; margin-left:6%; margin-right: 6%; margin-bottom:1%; margin-top:1%; height: 100%;" type="heatMode" src="Assets/Images/HeatMode.png">'
+            + '<img type="dry" style="width:15%; margin-left:6%; margin-right: 6%; margin-bottom:6%; margin-top: 6%; height: 60%;" type="dryMode" src="Assets/Images/DryMode.png">'
+            + '</div>'
 
-            + '<img type="coolMode" style="z-index:4; width:8.5%; height:11.4%; position: absolute; top: 66%; left: 50%; transform: translate(-50%,-66%); margin:0%; padding:0%;" src="Assets/Images/CoolMode.png" />'
+            + '<div type="fan" style="z-index: 4; width: 10%; height: 13%; position: absolute; top: 91%; left: 5.5%; text-align:center; transform: translate(-5.5%, -91%);">'
+            + '<img type="symbol" style="width:100%; height: 80%; margin-bottom:10%;" src="Assets/Images/FanAC.png" />'
+            + '<p type="fanRate" style="text-align: center; font-size:1.8vw;"></p>'
+            + '</div>'
 
-            + '<img type="fan" style="z-index:1; width:11%; height: 10.3%; position: absolute; top: 90%; left: 5.5%; transform: translate(-5.5%,-90%); margin:0%; padding:0%;" src="Assets/Images/FanAC.png" />'
-            + '<p type="fanRate" style="z-index:1; position: absolute; top: 99.5%; left: 6%; transform: translate(-6%,-99.5%); margin:0%; padding:0%; font-size:1.9vw;">Auto</p>'
-
-            + '<img type="swingDirection" style="z-index:1; width:9%; height: 9%; position: absolute; top: 94%; left: 83%; transform: translate(-83%,-94%); margin:0%; padding:0%;" src="Assets/Images/SwingDirection.png" />'
-            + '<img type="swingStyle" style="z-index:1; width:10%; height:7%; position: absolute; top: 92%; left: 97%; transform: translate(-97%,-92%); margin:0%; padding:0%;" src="Assets/Images/SwingStyle.png" />'
+            + '<img type="swingLR" style="z-index:1; width:8.5%; height: 9%; position: absolute; top: 94%; left: 83%; transform: translate(-83%,-94%); margin:0%; padding:0%;" src="Assets/Images/SwingLR.png" />'
+            + '<img type="swingUD" style="z-index:1; width:10%; height:7%; position: absolute; top: 92%; left: 97%; transform: translate(-97%,-92%); margin:0%; padding:0%;" src="Assets/Images/SwingUD.png" />'
             + '</holder>');
     });
     $(roomInfo.Devices['Switches']).each(function (index, appliance) {
         if (appliance['Switch type'].toLowerCase() == "dimmable light") {
-            $($($('wrappermax')[0]).children('divm[type=dimmableLights]')[0]).append('<holder state="' + (appliance['Status'] == 0 ? 'off' : 'on') + '" value="' + appliance['Dim Value'] + '" switch="' + appliance['Switch No.'] + '">'
+            $($($('wrappermax')[0]).children('divm[type=dimmableLights]')[0]).append('<holder state="' + (appliance['Status'] == 0 ? 'off' : 'on') + '" value="' + appliance['Dim Value'] + '" switch = "' + appliance['Switch No.'] + '">'
                 + '<slider type="emptySlider" style = "top: 25%; left: 50%; transform: translate(-50%,-25%);" ></slider >'
                 + '<img type="symbol" style="width:13%; height:22.5%; position: absolute; top: 45%; left: 50%; transform: translate(-50%,-45%);" src="Assets/Images/StaticLight.png" />'
                 + '<p type="identity" style="top: 80%;left: 50%; transform: translate(-50%,-80%);">' + appliance['Switch type'] + '</p>'
                 + '</holder>');
         } else if (appliance['Switch type'].toLowerCase() == "static light") {
-            $($($('wrappermax')[0]).children('divm[type=staticLights]')[0]).append('<holder state="' + (appliance['Status'] == 0 ? 'off' : 'on') + '" switch="' + appliance['Switch No.'] + '">'
+            $($($('wrappermax')[0]).children('divm[type=staticLights]')[0]).append('<holder state="' + (appliance['Status'] == 0 ? 'off' : 'on') + '" switch = "' + appliance['Switch No.'] + '">'
                 + '<img type = "symbol" style = "width:13%; height:22.5%; position: absolute; top: 45%; left: 50%; transform: translate(-50%,-45%);" src = "Assets/Images/StaticLight.png" />'
                 + '<p type="identity" style="top: 80%;left: 50%; transform: translate(-50%,-80%);">' + appliance['Switch type'] + '</p>'
                 + '</holder>');
         } else if (appliance['Switch type'].toLowerCase() == "fan") {
-            $($($('wrappermax')[0]).children('divm[type=fans]')[0]).append('<holder state="' + (appliance['Status'] == 0 ? 'off' : 'on') + '" value="' + appliance['Dim Value'] + '" switch="' + appliance['Switch No.'] + '">'
+            $($($('wrappermax')[0]).children('divm[type=fans]')[0]).append('<holder state="' + (appliance['Status'] == 0 ? 'off' : 'on') + '" value="' + appliance['Dim Value'] + '" switch = "' + appliance['Switch No.'] + '">'
                 + '<slider type = "emptySlider" style = "top: 25%; left: 50%; transform: translate(-50%,-25%);" ></slider>'
                 + '<img type="symbol" style="width:15%; height:20%; position: absolute; top: 47%; left: 50%; transform: translate(-50%,-47%);" src="Assets/Images/Fan.png" />'
                 + '<p type="identity" style="top: 80%;left: 50%; transform: translate(-50%,-80%);">' + appliance['Switch type'] + '</p>'
@@ -61,33 +112,124 @@ function initialize() {
             'grid-template-rows': 'repeat(' + (Array.from($(panel).children()).length * constants.panelRowTake) + ', ' + constants.panelRowSpan + ')'
         });
     });
-
-    $(window).on('load', function () {
-        $('divm[type=dimmableLights]').children('holder').each(function (index, holder) {
-            dimmableLightManager(holder);
-        });
-        $('divm[type=staticLights]').children('holder').each(function (index, holder) {
-            staticLightManager(holder);
-        });
-        $('divm[type=fans]').children('holder').each(function (index, holder) {
-            fanManager(holder);
-        });
-        $('divl[type=airConditioners]').children('holder').each(function (index, holder) {
-            airConditionerManager(holder);
+    $(document).ready(function () {
+        $(window).on('load', function () {
+            $('divm[type=dimmableLights]').children('holder').each(function (index, holder) {
+                appliances.switches.push({ 'identity': parseInt($(holder).attr('switch')), 'invoker': dimmableLightManager(holder) });
+            });
+            $('divm[type=staticLights]').children('holder').each(function (index, holder) {
+                appliances.switches.push({ 'identity': parseInt($(holder).attr('switch')), 'invoker': staticLightManager(holder) });
+            });
+            $('divm[type=fans]').children('holder').each(function (index, holder) {
+                appliances.switches.push({ 'identity': parseInt($(holder).attr('switch')), 'invoker': fanManager(holder) });
+            });
+            $('divl[type=airConditioners]').children('holder').each(function (index, holder) {
+                appliances.airConditioners.push({ 'identity': parseInt($(holder).attr('switch')), 'invoker': airConditionerManager(holder) });
+            });
+            appliances.mainSwitch = mainSwitchManager($('#mainSwitch'));
         });
     });
 }
-
-server.on('message', function (stack) {
-    if (stack) {
-        if (lastRequest == 'getRoom') {
-            room = stack;
-            lastRequest = "";
-            initialize();
+function applianceUpdater(appliance, custom, isJSON) {
+    var updateCommand;
+    if (!isJSON) {
+        updateCommand = JSON.parse(JSON.stringify(roomCommands));
+        if ($($(appliance).parent()[0]).attr('type') == 'airConditioners') {
+            updateCommand.Rooms[0].Devices['Air Conditioner'].push(JSON.parse(JSON.stringify(room.Rooms[0].Devices['Air Conditioner'].filter(airConditioner => { return airConditioner['Air Conditioner No.'] == parseInt($(appliance).attr('switch')) })[0])));
+            updateCommand.Rooms[0].Devices['Air Conditioner'][0]['Temperature'] = Math.round($(appliance).attr('value'));
+            updateCommand.Rooms[0].Devices['Air Conditioner'][0]['Command'] = 'Temp' + Math.round($(appliance).attr('value'));
+            updateCommand.Rooms[0].Devices['Air Conditioner'][0]['Power'] = $(appliance).attr('state').toUpperCase();
+            updateCommand.Rooms[0].Devices['Air Conditioner'][0]['Mode'] = $(appliance).attr('mode');
+            updateCommand.Rooms[0].Devices['Air Conditioner'][0]['Fan Speed'] = $(appliance).attr('fanRate');
+            updateCommand.Rooms[0].Devices['Air Conditioner'][0]['Min Range'] = constants.minTemp;
+            updateCommand.Rooms[0].Devices['Air Conditioner'][0]['Max Range'] = constants.maxTemp;
+            switch (custom) {
+                case 'power':
+                    updateCommand.Rooms[0].Devices['Air Conditioner'][0]['Command'] = $(appliance).attr('state').toUpperCase();
+                    break;
+                case 'mode':
+                    updateCommand.Rooms[0].Devices['Air Conditioner'][0]['Command'] = $(appliance).attr('Mode');
+                    break;
+                case 'fan':
+                    updateCommand.Rooms[0].Devices['Air Conditioner'][0]['Command'] = 'Wind';
+                    break;
+                case 'swingLR':
+                    server.emit('SwingLR');
+                    return;
+                case 'swingUD':
+                    server.emit('SwingUD');
+                    return;
+            }
+        }
+        else if ($($(appliance).parent()[0]).attr('type') == 'dimmableLights') {
+            updateCommand.Rooms[0].Devices['Switches'].push(JSON.parse(JSON.stringify(room.Rooms[0].Devices['Switches'].filter(dimmableLight => { return dimmableLight['Switch No.'] == parseInt($(appliance).attr('switch')); })[0])));
+            updateCommand.Rooms[0].Devices['Switches'][0]['Dim Value'] = Math.round($(appliance).attr('value'));
+            updateCommand.Rooms[0].Devices['Switches'][0]['Status'] = ($(appliance).attr('state').toLowerCase() == "on" ? 1 : 0);
+        }
+        else if ($($(appliance).parent()[0]).attr('type') == 'fans') {
+            updateCommand.Rooms[0].Devices['Switches'].push(JSON.parse(JSON.stringify(room.Rooms[0].Devices['Switches'].filter(fan => { return fan['Switch No.'] == parseInt($(appliance).attr('switch')); })[0])));
+            updateCommand.Rooms[0].Devices['Switches'][0]['Dim Value'] = Math.round($(appliance).attr('value'));
+            updateCommand.Rooms[0].Devices['Switches'][0]['Status'] = ($(appliance).attr('state').toLowerCase() == "on" ? 1 : 0);
+        }
+        else if ($($(appliance).parent()[0]).attr('type') == 'staticLights') {
+            updateCommand.Rooms[0].Devices['Switches'].push(JSON.parse(JSON.stringify(room.Rooms[0].Devices['Switches'].filter(fan => { return fan['Switch No.'] == parseInt($(appliance).attr('switch')); })[0])));
+            updateCommand.Rooms[0].Devices['Switches'][0]['Status'] = ($(appliance).attr('state').toLowerCase() == "on" ? 1 : 0);
+        }
+    } else {
+        updateCommand = JSON.parse(JSON.stringify(appliance));
+    }
+    server.emit('recvcommand', JSON.stringify(updateCommand));
+}
+function mainSwitchManager(mainSwitch) {
+    var deactivatedDevices = JSON.parse(JSON.stringify(roomCommands));
+    $(mainSwitch).on('change', toggleAppliances);
+    return dismisser;
+    function toggleAppliances() {
+        var updateCommand = JSON.parse(JSON.stringify(roomCommands));
+        if (!mainSwitch.prop('checked')) {
+            $(room.Rooms[0].Devices['Air Conditioner']).each(function (index, appliance) {
+                if (appliance['Power'] == 'ON') {
+                    deactivatedDevices.Rooms[0].Devices['Air Conditioner'].push(JSON.parse(JSON.stringify(appliance)));
+                    var offAppliance = JSON.parse(JSON.stringify(appliance));
+                    offAppliance['Power'] = 'OFF';
+                    offAppliance['Command'] = 'OFF';
+                    updateCommand.Rooms[0].Devices['Air Conditioner'].push(JSON.parse(JSON.stringify(offAppliance)));
+                }
+            });
+            $(room.Rooms[0].Devices['Switches']).each(function (index, appliance) {
+                if (appliance['Status'] == 1) {
+                    deactivatedDevices.Rooms[0].Devices['Switches'].push(JSON.parse(JSON.stringify(appliance)));
+                    var offAppliance = JSON.parse(JSON.stringify(appliance));
+                    offAppliance['Status'] = 0;
+                    updateCommand.Rooms[0].Devices['Switches'].push(JSON.parse(JSON.stringify(offAppliance)));
+                }
+            });
+            applianceUpdater(updateCommand, 'power', true);
+        } else {
+            $(deactivatedDevices.Rooms[0].Devices['Air Conditioner']).each(function (index, appliance) {
+                deactivatedDevices.Rooms[0].Devices['Air Conditioner'].push(JSON.parse(JSON.stringify(appliance)));
+                var offAppliance = JSON.parse(JSON.stringify(appliance));
+                offAppliance['Power'] = 'ON';
+                offAppliance['Command'] = 'ON';
+                updateCommand.Rooms[0].Devices['Air Conditioner'].push(JSON.parse(JSON.stringify(offAppliance)));
+            });
+            $(deactivatedDevices.Rooms[0].Devices['Switches']).each(function (index, appliance) {
+                deactivatedDevices.Rooms[0].Devices['Switches'].push(JSON.parse(JSON.stringify(appliance)));
+                var offAppliance = JSON.parse(JSON.stringify(appliance));
+                offAppliance['Status'] = 1;
+                updateCommand.Rooms[0].Devices['Switches'].push(JSON.parse(JSON.stringify(offAppliance)));
+            });
+            applianceUpdater(updateCommand, 'power', true);
+            deactivatedDevices = JSON.parse(JSON.stringify(roomCommands));
         }
     }
-});
-
+    function dismisser() {
+        deactivatedDevices = JSON.parse(JSON.stringify(roomCommands));
+        $(mainSwitch).off('change');
+        $(mainSwitch).prop("checked", true);
+        $(mainSwitch).on('change', toggleAppliances);
+    }
+}
 function airConditionerManager(holder) {
     var power,
         powerExt,
@@ -109,15 +251,10 @@ function airConditionerManager(holder) {
         tempPerDev,
         tempStart,
         marginDev,
-        coolMode,
-        warmMode,
-        windMode,
+        modes,
         fan,
-        fanRate,
-        swingDirection,
-        swingStyle,
-        airConditioner;
-    airConditioner = 
+        swingLR,
+        swingUD;
     sliderFill();
     adjuster();
     $(window).resize(function () {
@@ -126,6 +263,13 @@ function airConditionerManager(holder) {
     $(power).mousedown(toggler);
     $(powerExt).mousedown(toggler);
     stateCoordinator();
+    return invoker;
+    function invoker(updates) {
+        setter(null, null, null, updates['Temperature'], true);
+        modeSetter(updates['Mode']);
+        fanSpeedSetter(updates['Fan Speed']);
+        switcher(updates['Power'] == "ON" ? true : false);
+    }
     function sliderFill() {
         $($(holder).children('img[type=slider]')[0].outerHTML).insertAfter($(holder).children('img[type=slider]')[0]);
         $($(holder).children('img[type=slider]')[1]).attr('type', 'fullSlider');
@@ -135,21 +279,24 @@ function airConditionerManager(holder) {
     }
     function stateCoordinator() {
         setter(null, null, null, parseFloat($(holder).attr('value')));
+        modeSetter($(holder).attr('Mode'));
+        fanSpeedSetter($(holder).attr('fanRate'));
         if ($(holder).attr('state') == 'on') {
             $(rate).css('opacity', '1');
             $(knob).css('opacity', '1');
             $(dialer).css('opacity', '1');
-            $(coolMode).css('opacity', '1');
-            $(warmMode).css('opacity', '1');
-            $(windMode).css('opacity', '1');
+            $(modes).css('opacity', '1');
             $(fan).css('opacity', '1');
-            $(fanRate).css('opacity', '1');
-            $(swingDirection).css('opacity', '1');
-            $(swingStyle).css('opacity', '1');
+            $(swingLR).css('opacity', '1');
+            $(swingUD).css('opacity', '1');
             $(fullSlider).css('opacity', '1');
             $(dialer).css('opacity', '1');
             $(dialerInactive).css('opacity', '0');
             $(powerExt).css('opacity', '1');
+            $(modes).on('click', modeChanger);
+            $(fan).on('click', fanSpeedChanger);
+            $(swingLR).on('click', swingX);
+            $(swingUD).on('click', swingY);
             dragManager();
         } else if ($(holder).attr('state') == 'off') {
             $(knob).unbind('touchstart');
@@ -157,13 +304,10 @@ function airConditionerManager(holder) {
             $(rate).css('opacity', '0.5');
             $(knob).css('opacity', '0');
             $(dialer).css('opacity', '0');
-            $(coolMode).css('opacity', '0.5');
-            $(warmMode).css('opacity', '0.5');
-            $(windMode).css('opacity', '0.5');
+            $(modes).css('opacity', '0.5');
             $(fan).css('opacity', '0.5');
-            $(fanRate).css('opacity', '0.5');
-            $(swingDirection).css('opacity', '0.5');
-            $(swingStyle).css('opacity', '0.5');
+            $(swingLR).css('opacity', '0.5');
+            $(swingUD).css('opacity', '0.5');
             $(slider).css({
                 "-webkit-mask-image": "",
                 "mask-image": ""
@@ -172,7 +316,43 @@ function airConditionerManager(holder) {
             $(dialer).css('opacity', '0');
             $(dialerInactive).css('opacity', '1');
             $(powerExt).css('opacity', '0');
+            $(modes).off('click');
+            $(fan).off('click');
+            $(swingLR).off('click');
+            $(swingUD).off('click');
         }
+    }
+    function modeChanger() {
+        if ($(holder).attr('Mode') == "Cool") {
+            $(holder).attr('Mode', 'Heat');
+        } else if ($(holder).attr('Mode') == "Heat") {
+            $(holder).attr('Mode', 'Dry');
+        } else if ($(holder).attr('Mode') == "Dry") {
+            $(holder).attr('Mode', 'Cool');
+        } else {
+            $(holder).attr('Mode', 'Cool');
+        }
+        applianceUpdater(holder, 'mode');
+    }
+    function fanSpeedChanger() {
+        applianceUpdater(holder, 'fan');
+    }
+    function modeSetter(mode) {
+        $(modes).children('img').each(function (index, modeDisplay) {
+            $(modeDisplay).removeClass();
+        });
+        $(modes).children('img[type=' + mode.toLowerCase() + ']').addClass(mode);
+        $(holder).attr('Mode', mode);
+    }
+    function fanSpeedSetter(rate) {
+        $(fan).children('p[type=fanRate]')[0].innerHTML = rate;
+        $(holder).attr('fanRate', rate);
+    }
+    function swingX() {
+        applianceUpdater(holder, 'swingLR');
+    }
+    function swingY() {
+        applianceUpdater(holder, 'swingUD');
     }
     function adjuster() {
         power = $(holder).children('img[type=power]')[0];
@@ -191,22 +371,19 @@ function airConditionerManager(holder) {
         xc = leftGap + (range / 2) + (sliderExcess / 2);
         yc = topGap + (range / 2) + (sliderExcess / 2);
         r = (range / 2);
-        tempPerDev = ((constants.maxTemp - constants.minTemp) + 1) / ((constants.maxDev + (Math.PI * 2.5)) - (constants.minDev + (Math.PI * 0.5)));
-        tempStart = constants.minTemp - 0.5 - Math.abs((constants.minDev + (Math.PI * 0.5)) * tempPerDev);
+        tempPerDev = ((parseFloat($(holder).attr('maxTemp')) - parseFloat($(holder).attr('minTemp'))) + 1) / ((constants.maxDev + (Math.PI * 2.5)) - (constants.minDev + (Math.PI * 0.5)));
+        tempStart = parseFloat($(holder).attr('minTemp')) - 0.5 - Math.abs((constants.minDev + (Math.PI * 0.5)) * tempPerDev);
         marginDev = (1 / $(window).width()) * constants.marginDevMultiplier;
-        coolMode = $(holder).children('img[type=coolMode]')[0];
-        warmMode = $(holder).children('img[type=warmMode]')[0];
-        windMode = $(holder).children('img[type=windMode]')[0];
-        fan = $(holder).children('img[type=fan]')[0];
-        fanRate = $(holder).children('p[type=fanRate]')[0];
-        swingDirection = $(holder).children('img[type=swingDirection]')[0];
-        swingStyle = $(holder).children('img[type=swingStyle]')[0];
+        modes = $(holder).children('div[type=modes]')[0];
+        fan = $(holder).children('div[type=fan]')[0];
+        swingLR = $(holder).children('img[type=swingLR]')[0];
+        swingUD = $(holder).children('img[type=swingUD]')[0];
         if (aspectRatio() >= 2.5) {
-            $(swingDirection).css({
+            $(swingLR).css({
                 "top": "82%", "left": "94%", "transform": "translate(-94%,-85%)"
             });
         } else {
-            $(swingDirection).css({
+            $(swingLR).css({
                 "top": "94%", "left": "83%", "transform": "translate(-83%,-97%)"
             });
         }
@@ -225,8 +402,11 @@ function airConditionerManager(holder) {
         }
         return { 'x': x, 'y': y, 'deviation': dev };
     }
-    function setter(x, y, dev, temp) {
+    function setter(x, y, dev, temp, external) {
         if (temp) {
+            if ((temp == Math.round($(holder).attr('value'))) && (external)) {
+                return;
+            }
             dev = ((temp - tempStart) * (1 / tempPerDev)) - (Math.PI / 2);
         }
         var position = posCalc(x, y, dev);
@@ -259,37 +439,46 @@ function airConditionerManager(holder) {
             return;
         }
         if ($(holder).attr('state') == 'off') {
-            $(holder).attr('state', 'switching');
+            $(holder).attr('state', 'on');
+        } else if ($(holder).attr('state') == 'on') {
+            $(holder).attr('state', 'off');
+        }
+        applianceUpdater(holder, 'power');
+    }
+    function switcher(state) {
+        $(holder).attr('state', 'switching');
+        if (state) {
             $(knob).animate({ opacity: 1 }, constants.animationTime, function () {
                 dragManager();
             });
             $(rate).animate({ opacity: 1 }, constants.animationTime);
-            $(coolMode).animate({ opacity: 1 }, constants.animationTime);
-            $(warmMode).animate({ opacity: 1 }, constants.animationTime);
-            $(windMode).animate({ opacity: 1 }, constants.animationTime);
+            $(modes).animate({ opacity: 1 }, constants.animationTime);
             $(fan).animate({ opacity: 1 }, constants.animationTime);
-            $(fanRate).animate({ opacity: 1 }, constants.animationTime);
-            $(swingDirection).animate({ opacity: 1 }, constants.animationTime);
-            $(swingStyle).animate({ opacity: 1 }, constants.animationTime);
+            $(swingLR).animate({ opacity: 1 }, constants.animationTime);
+            $(swingUD).animate({ opacity: 1 }, constants.animationTime);
             $(powerExt).animate({ opacity: 1 }, constants.animationTime);
             $(fullSlider).animate({ opacity: 1 }, constants.animationTime);
             $(dialerInactive).animate({ opacity: 0 }, constants.animationTime);
+            $(modes).off('click');
+            $(fan).off('click');
+            $(swingLR).off('click');
+            $(swingUD).off('click');
+            $(modes).on('click', modeChanger);
+            $(fan).on('click', fanSpeedChanger);
+            $(swingLR).on('click', swingX);
+            $(swingUD).on('click', swingY);
             $(dialer).animate({ opacity: 1 }, constants.animationTime + constants.animationMaxDelay, function () {
                 $(holder).attr('state', 'on');
             });
-        } else if ($(holder).attr('state') == 'on') {
-            $(holder).attr('state', 'switching');
+        } else {
             $(knob).unbind('touchstart');
             $(knob).unbind('mousedown');
             $(knob).animate({ opacity: 0 }, constants.animationTime);
             $(rate).animate({ opacity: 0.5 }, constants.animationTime);
-            $(coolMode).animate({ opacity: 0.5 }, constants.animationTime);
-            $(warmMode).animate({ opacity: 0.5 }, constants.animationTime);
-            $(windMode).animate({ opacity: 0.5 }, constants.animationTime);
+            $(modes).animate({ opacity: 0.5 }, constants.animationTime);
             $(fan).animate({ opacity: 0.5 }, constants.animationTime);
-            $(fanRate).animate({ opacity: 0.5 }, constants.animationTime);
-            $(swingDirection).animate({ opacity: 0.5 }, constants.animationTime);
-            $(swingStyle).animate({ opacity: 0.5 }, constants.animationTime);
+            $(swingLR).animate({ opacity: 0.5 }, constants.animationTime);
+            $(swingUD).animate({ opacity: 0.5 }, constants.animationTime);
             $(powerExt).animate({ opacity: 0 }, constants.animationTime);
             $(slider).css({
                 "-webkit-mask-image": "",
@@ -297,6 +486,10 @@ function airConditionerManager(holder) {
             });
             $(fullSlider).animate({ opacity: 0 }, constants.animationTime);
             $(dialerInactive).animate({ opacity: 1 }, constants.animationTime);
+            $(modes).off('click');
+            $(fan).off('click');
+            $(swingLR).off('click');
+            $(swingUD).off('click');
             $(dialer).animate({ opacity: 0 }, constants.animationTime + constants.animationMaxDelay, function () {
                 $(holder).attr('state', 'off');
             });
@@ -326,7 +519,6 @@ function airConditionerManager(holder) {
             }
             xMargin = x - (knob.getBoundingClientRect().left + knobExcess);
             yMargin = yOld - (knob.getBoundingClientRect().top + knobExcess);
-            endDrag();
             $(document).mouseup(function () {
                 endDrag();
             });
@@ -384,6 +576,7 @@ function airConditionerManager(holder) {
             $(document).unbind('mousemove');
             $(document).unbind('touchend');
             $(document).unbind('touchmove');
+            applianceUpdater(holder);
         }
     }
 }
@@ -409,6 +602,11 @@ function fanManager(holder) {
     });
     $(holder).mousedown(toggler);
     stateCoordinator();
+    return invoker;
+    function invoker(updates) {
+        setter(updates['Dim Value'], true, true);
+        switcher(updates.Status);
+    }
     function sliderFill() {
         $(holder).append('<p type="rate" style="top: 12%;left: 90%; transform: translate(-50%,-80%);"></p>');
         $($(holder).children('slider[type=emptySlider]')[0].outerHTML).insertAfter($(holder).children('slider[type=emptySlider]')[0]);
@@ -465,8 +663,11 @@ function fanManager(holder) {
     function topCalc(x) {
         return (-1 * Math.pow((-1 * Math.pow(((x + (sliderExcess / 2) + leftGap) - xc), 2)) + Math.pow(r, 2), 0.5)) + yc;
     }
-    function setter(horizontalOffset, percent) {
+    function setter(horizontalOffset, percent, external) {
         if (percent) {
+            if ((horizontalOffset == Math.round($(holder).attr('value'))) && external) {
+                return;
+            }
             horizontalOffset *= (range / 100);
         }
         var y = topCalc(horizontalOffset);
@@ -489,7 +690,15 @@ function fanManager(holder) {
             return;
         }
         if ($(holder).attr('state') == 'off') {
-            $(holder).attr('state', 'switching');
+            $(holder).attr('state', 'on');
+        } else if ($(holder).attr('state') == 'on') {
+            $(holder).attr('state', 'off');
+        }
+        applianceUpdater(holder);
+    }
+    function switcher(state) {
+        $(holder).attr('state', 'switching');
+        if (state) {
             $(holder).css({
                 "background-image": "linear-gradient(rgba(34, 111, 175, 0.7), rgba(57, 120, 181, 0.7))"
             });
@@ -501,8 +710,7 @@ function fanManager(holder) {
             $(slider).animate({ opacity: 1 }, constants.animationTime + constants.animationMaxDelay, function () {
                 $(holder).attr('state', 'on');
             });
-        } else if ($(holder).attr('state') == 'on') {
-            $(holder).attr('state', 'switching');
+        } else {
             $(holder).css({
                 "background-image": "linear-gradient(rgba(52, 64, 122, 0.3), rgba(53, 63, 121, 0.3))"
             });
@@ -537,7 +745,6 @@ function fanManager(holder) {
                 x = e.clientX;
             }
             xMargin = x - (knob.getBoundingClientRect().left + knobExcess);
-            endDrag();
             $(document).mouseup(function () {
                 endDrag();
             });
@@ -579,6 +786,7 @@ function fanManager(holder) {
             $(document).unbind('mousemove');
             $(document).unbind('touchend');
             $(document).unbind('touchmove');
+            applianceUpdater(holder);
         }
     }
 }
@@ -590,6 +798,10 @@ function staticLightManager(holder) {
     adjuster();
     $(holder).mousedown(toggler);
     stateCoordinator();
+    return invoker;
+    function invoker(updates) {
+        switcher(updates.Status);
+    }
     function lightGlow() {
         $($(holder).children('img[type=symbol]')[0].outerHTML).insertAfter($(holder).children('img[type=symbol]')[0]);
         $($($(holder).children('img[type=symbol]')[0]).next('img')[0]).attr({
@@ -619,24 +831,31 @@ function staticLightManager(holder) {
         }
     }
     function toggler() {
-        if ($(holder).attr('state') == "switching") {
+        if ($(holder).attr('state') == 'switching') {
             return;
         }
-        if ($(holder).attr('state') == "off") {
-            $(holder).attr('state', 'switching');
-            $(litLight).animate({ opacity: 1 }, constants.animationTime + constants.animationMaxDelay, function () {
-                $(holder).attr('state', 'on');
-            });
+        if ($(holder).attr('state') == 'off') {
+            $(holder).attr('state', 'on');
+        } else if ($(holder).attr('state') == 'on') {
+            $(holder).attr('state', 'off');
+        }
+        applianceUpdater(holder);
+    }
+    function switcher(state) {
+        $(holder).attr('state', 'switching');
+        if (state) {
             $(holder).css({
                 "background-image": "linear-gradient(rgba(34, 111, 175, 0.7), rgba(57, 120, 181, 0.7))"
             });
-        } else if ($(holder).attr('state') == "on") {
-            $(holder).attr('state', 'switching');
-            $(litLight).animate({ opacity: 0 }, constants.animationTime + constants.animationMaxDelay, function () {
-                $(holder).attr('state', 'off');
+            $(litLight).animate({ opacity: 1 }, constants.animationTime + constants.animationMaxDelay, function () {
+                $(holder).attr('state', 'on');
             });
+        } else {
             $(holder).css({
                 "background-image": "linear-gradient(rgba(52, 64, 122, 0.3), rgba(53, 63, 121, 0.3))"
+            });
+            $(litLight).animate({ opacity: 0 }, constants.animationTime + constants.animationMaxDelay, function () {
+                $(holder).attr('state', 'off');
             });
         }
     }
@@ -665,6 +884,11 @@ function dimmableLightManager(holder) {
     });
     $(holder).mousedown(toggler);
     stateCoordinator();
+    return invoker;
+    function invoker(updates) {
+        setter(updates['Dim Value'], true, true);
+        switcher(updates.Status);
+    }
     function lightGlow() {
         $($(holder).children('img[type=symbol]')[0].outerHTML).insertAfter($(holder).children('img[type=symbol]')[0]);
         $($($(holder).children('img[type=symbol]')[0]).next('img')[0]).attr({
@@ -733,8 +957,11 @@ function dimmableLightManager(holder) {
     function topCalc(x) {
         return (-1 * Math.pow((-1 * Math.pow(((x + (sliderExcess / 2) + leftGap) - xc), 2)) + Math.pow(r, 2), 0.5)) + yc;
     }
-    function setter(horizontalOffset, percent) {
+    function setter(horizontalOffset, percent, external) {
         if (percent) {
+            if ((horizontalOffset == Math.round($(holder).attr('value'))) && external) {
+                return;
+            }
             horizontalOffset *= (range / 100);
         }
         var y = topCalc(horizontalOffset);
@@ -758,30 +985,37 @@ function dimmableLightManager(holder) {
             return;
         }
         if ($(holder).attr('state') == 'off') {
-            $(holder).attr('state', 'switching');
+            $(holder).attr('state', 'on');
+        } else if ($(holder).attr('state') == 'on') {
+            $(holder).attr('state', 'off');
+        }
+        applianceUpdater(holder);
+    }
+    function switcher(state) {
+        $(holder).attr('state', 'switching');
+        if (state) {
             $(holder).css({
                 "background-image": "linear-gradient(rgba(34, 111, 175, 0.7), rgba(57, 120, 181, 0.7))"
             });
             $(knob).animate({ opacity: 1 }, constants.animationTime, function () {
                 dragManager();
             });
+            $(litLight).animate({ opacity: ($(holder).attr('value') / 100) }, constants.animationTime);
             $(fullSlider).animate({ opacity: 1 }, constants.animationTime);
             $(rate).animate({ opacity: 1 }, constants.animationTime);
-            $(litLight).animate({ opacity: parseFloat($(holder).attr('value')) / 100 }, constants.animationTime);
             $(slider).animate({ opacity: 1 }, constants.animationTime + constants.animationMaxDelay, function () {
                 $(holder).attr('state', 'on');
             });
-        } else if ($(holder).attr('state') == 'on') {
-            $(holder).attr('state', 'switching');
+        } else {
             $(holder).css({
                 "background-image": "linear-gradient(rgba(52, 64, 122, 0.3), rgba(53, 63, 121, 0.3))"
             });
             $(knob).unbind('touchstart');
             $(knob).unbind('mousedown');
             $(knob).animate({ opacity: 0 }, constants.animationTime);
+            $(litLight).animate({ opacity: 0 }, constants.animationTime);
             $(fullSlider).animate({ opacity: 0.5 }, constants.animationTime);
             $(rate).animate({ opacity: 0.5 }, constants.animationTime);
-            $(litLight).animate({ opacity: 0 }, constants.animationTime);
             $(slider).animate({ opacity: 0.5 }, constants.animationTime + constants.animationMaxDelay, function () {
                 $(holder).attr('state', 'off');
             });
@@ -808,12 +1042,11 @@ function dimmableLightManager(holder) {
                 x = e.clientX;
             }
             xMargin = x - (knob.getBoundingClientRect().left + knobExcess);
-            endDrag();
             $(document).mouseup(function () {
                 endDrag();
             });
             $(document).on('touchend', function () {
-                endDrag();
+                //endDrag();
             });
             $(document).mousemove(function (e) {
                 Drag(e, false);
@@ -850,16 +1083,30 @@ function dimmableLightManager(holder) {
             $(document).unbind('mousemove');
             $(document).unbind('touchend');
             $(document).unbind('touchmove');
+            applianceUpdater(holder);
         }
     }
 }
-function validateStringJSON(inpStr) {
-    try {
-        JSON.parse(inpStr);
-    } catch (e) {
-        return false;
+function aspectRatio() {
+    function width() {
+        return Math.max(
+            document.body.scrollWidth,
+            document.documentElement.scrollWidth,
+            document.body.offsetWidth,
+            document.documentElement.offsetWidth,
+            document.documentElement.clientWidth
+        );
     }
-    return true;
+    function height() {
+        return Math.max(
+            document.body.scrollHeight,
+            document.documentElement.scrollHeight,
+            document.body.offsetHeight,
+            document.documentElement.offsetHeight,
+            document.documentElement.clientHeight
+        );
+    }
+    return (width() / height());
 }
 (function () {
     var a = document.getElementsByClassName("weatherwidget-io"),
@@ -890,24 +1137,3 @@ function validateStringJSON(inpStr) {
     } else setTimeout(arguments.callee, constants.weatherLoadFailureRetryDelay);
     setTimeout(arguments.callee, constants.weatherUpdateInterval);
 })();
-function aspectRatio() {
-    function width() {
-        return Math.max(
-            document.body.scrollWidth,
-            document.documentElement.scrollWidth,
-            document.body.offsetWidth,
-            document.documentElement.offsetWidth,
-            document.documentElement.clientWidth
-        );
-    }
-    function height() {
-        return Math.max(
-            document.body.scrollHeight,
-            document.documentElement.scrollHeight,
-            document.body.offsetHeight,
-            document.documentElement.offsetHeight,
-            document.documentElement.clientHeight
-        );
-    }
-    return (width() / height());
-}
