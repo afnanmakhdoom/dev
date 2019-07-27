@@ -973,7 +973,9 @@ function dimmableLightManager(holder) {
             $(fullSlider).css({
                 "clip": "rect(0vw, " + ((horizontalOffset / 100) * (range + sliderExcess)) + "px, " + constants.sliderHeight + ", 0vw)"
             });
-            $(litLight).css('opacity', horizontalOffset / 100);
+            if ($(holder).attr('state') == 'on') {
+                $(litLight).css('opacity', horizontalOffset / 100);
+            }
             $(holder).attr('value', horizontalOffset);
         } else { return false; }
     }
